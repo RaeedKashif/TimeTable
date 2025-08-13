@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Time Table Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff0000;
+            --secondary-color: #cc0000;
+            --background-color: #000000;
+            --card-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --border-color: #333333;
+            --highlight-color: #3a1a1a;
+            --input-bg: #2d2d2d;
+            --table-header-bg: #1a1a1a;
+            --table-row-even: #1a1a1a;
+            --table-row-hover: #2a1a1a;
+            --glow-effect: 0 0 8px rgba(255, 0, 0, 0.8);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-shadow: var(--glow-effect);
+        }
+
+        .filter-container {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: var(--glow-effect);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: var(--glow-effect);
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.9);
+        }
+
+        .results-container {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .timetable-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .timetable-table th {
+            background-color: var(--table-header-bg);
+            color: var(--primary-color);
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--primary-color);
+            text-shadow: var(--glow-effect);
+        }
+
+        .timetable-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--primary-color);
+            border-right: 1px solid var(--primary-color);
+            border-left: 1px solid var(--primary-color);
+        }
+
+        .timetable-table tr:nth-child(even) {
+            background-color: var(--table-row-even);
+        }
+
+        .timetable-table tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary-color);
+            font-style: italic;
+            text-shadow: var(--glow-effect);
+        }
+
+        .result-count {
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--primary-color);
+            text-shadow: var(--glow-effect);
+        }
+
+        .free-slots-container {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primary-color);
+        }
+
+        .free-slots-results {
+            margin-top: 15px;
+        }
+
+        .room-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .room-chip {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            box-shadow: var(--glow-effect);
+            transition: all 0.3s;
+        }
+
+        .room-chip:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(255, 0, 0, 0.9);
+        }
+
+        i.fas {
+            color: var(--primary-color);
+            text-shadow: var(--glow-effect);
+        }
+
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .filter-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calendar-alt"></i> OSCER PK ReMastered</h1>
+            <p>Select filters to view your respective timetable</p>
+        </header>
+
+        <div class="filter-container">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="day-select"><i class="fas fa-calendar-day"></i> Day</label>
+                    <select id="day-select">
+                        <option value="All">All Days</option>
+                        {% for day in days %}
+                            <option value="{{ day }}">{{ day }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="batch-select"><i class="fas fa-users"></i> Batch</label>
+                    <select id="batch-select">
+                        <option value="All">All Batches</option>
+                        {% for batch in batches %}
+                            <option value="{{ batch }}">{{ batch }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="section-select"><i class="fas fa-user-friends"></i> Section</label>
+                    <select id="section-select">
+                        <option value="All">All Sections</option>
+                        {% for section in sections %}
+                            <option value="{{ section }}">{{ section }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div id="timetable-results">
+                <div class="no-results">
+                    <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Select filters to view timetable</p>
+                </div>
+            </div>
+            <div class="result-count" id="result-count"></div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Load timetable when any filter changes
+            $('select').change(function() {
+                loadTimetable();
+            });
+
+            // When batch changes, update sections
+            $('#batch-select').change(function() {
+                const batch = $(this).val();
+                
+                $.ajax({
+                    url: '/get_sections',
+                    method: 'POST',
+                    data: { batch: batch },
+                    success: function(response) {
+                        const sectionSelect = $('#section-select');
+                        sectionSelect.empty();
+                        sectionSelect.append('<option value="All">All Sections</option>');
+                        
+                        response.sections.forEach(function(section) {
+                            sectionSelect.append(`<option value="${section}">${section}</option>`);
+                        });
+                        
+                        // Reload timetable with new sections
+                        loadTimetable();
+                    }
+                });
+            });
+
+            // Find free rooms button click
+            $('#find-rooms-btn').click(function() {
+                findFreeRooms();
+            });
+
+            // Initial load
+            loadTimetable();
+
+            function loadTimetable() {
+                const day = $('#day-select').val();
+                const batch = $('#batch-select').val();
+                const section = $('#section-select').val();
+                
+                $.ajax({
+                    url: '/get_filtered_timetable',
+                    method: 'POST',
+                    data: { 
+                        day: day,
+                        batch: batch,
+                        section: section
+                    },
+                    success: function(response) {
+                        if (response.html) {
+                            $('#timetable-results').html(response.html);
+                            $('#result-count').text(`${response.count} classes found`);
+                        } else {
+                            $('#timetable-results').html(`
+                                <div class="no-results">
+                                    <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                    <p>No classes found for the selected filters</p>
+                                </div>
+                            `);
+                            $('#result-count').text('');
+                        }
+                    }
+                });
+            }
+
+            function findFreeRooms() {
+                const day = $('#free-day-select').val();
+                const timeSlot = $('#time-slot').val();
+                
+                if (!timeSlot || !timeSlot.match(/\d{2}:\d{2}-\d{2}:\d{2}/)) {
+                    $('#free-rooms-results').html(`
+                        <div class="no-results">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                            <p>Please enter a valid time slot (HH:MM-HH:MM)</p>
+                        </div>
+                    `);
+                    $('#free-rooms-count').text('');
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/get_free_rooms',
+                    method: 'POST',
+                    data: { 
+                        day: day,
+                        time_slot: timeSlot
+                    },
+                    success: function(response) {
+                        if (response.error) {
+                            $('#free-rooms-results').html(`
+                                <div class="no-results">
+                                    <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                    <p>${response.error}</p>
+                                </div>
+                            `);
+                            $('#free-rooms-count').text('');
+                        } else if (response.free_rooms && response.free_rooms.length > 0) {
+                            let roomsHtml = '<div class="room-list">';
+                            response.free_rooms.forEach(room => {
+                                roomsHtml += `<span class="room-chip">${room}</span>`;
+                            });
+                            roomsHtml += '</div>';
+                            $('#free-rooms-results').html(roomsHtml);
+                            $('#free-rooms-count').text(`${response.count} rooms available`);
+                        } else {
+                            $('#free-rooms-results').html(`
+                                <div class="no-results">
+                                    <i class="fas fa-door-closed" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                    <p>No rooms available during this time slot</p>
+                                </div>
+                            `);
+                            $('#free-rooms-count').text('');
+                        }
+                    },
+                    error: function() {
+                        $('#free-rooms-results').html(`
+                            <div class="no-results">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <p>Error fetching free rooms data</p>
+                            </div>
+                        `);
+                        $('#free-rooms-count').text('');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
